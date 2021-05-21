@@ -846,6 +846,7 @@ public class GUI implements ActionListener {
         else if (obj == yesBets)
         {
             betsQuestion.setText("How Much?");
+            //Add your balance to this screen
             backgroundBets.remove(yesBets);
             backgroundBets.remove(noBets);
             backgroundBets.repaint();
