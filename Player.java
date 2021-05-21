@@ -53,6 +53,16 @@ public class Player implements Serializable {
         return this.losses;
     }
 
+    public void setWins(int wins)
+    {
+        this.wins = wins;
+    }
+
+    public void setLosses(int losses)
+    {
+        this.losses = losses;
+    }
+
     public void addWin()
     {
         this.wins++;

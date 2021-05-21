@@ -5,13 +5,17 @@ import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+// import java.io.FileInputStream;
+// import java.io.FileNotFoundException;
+// import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+// import java.io.ObjectInputStream;
+// import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.*;
@@ -57,7 +61,7 @@ public class GUI implements ActionListener {
     //Strings
     private String username;
     private String password;
-    private static  String filepath="./players/obj";
+    //private static  String filepath="./players/obj";
 
     //Integers
     private int widthChange,widthChange2; 
@@ -81,6 +85,13 @@ public class GUI implements ActionListener {
 
     //Dimension Objects
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+    //Server init
+    public static Socket s;
+    public static DataInputStream din;
+    public static DataOutputStream dout;
+    private static String IP = "217.105.46.146";
+    private static int PORT = 51374;
     /* **** Variables END **** */
 
 
@@ -335,43 +346,172 @@ public class GUI implements ActionListener {
     }
 
     //Write a new player to file
-    public static void WriteObjectToFile(Player serObj)
+    public static void WriteObjectToFile(Player serObj) throws UnknownHostException, IOException
     {
-        filepath = "./players/player_" + serObj.getUID();
-        try {
-            FileOutputStream fileOut = new FileOutputStream(filepath);
-            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-            objectOut.writeObject(serObj);
-            objectOut.close();
-            //System.out.println("The Object  was succesfully written to a file");
- 
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        s = new Socket(IP, PORT);
+        din = new DataInputStream(s.getInputStream());
+        dout = new DataOutputStream(s.getOutputStream());
+        boolean waiting = true;
+        boolean name = false; 
+        String response = "";
+        String message = playerToString(serObj);
+        while (waiting)
+        {
+            if (!name)
+            {
+                dout.writeUTF(serObj.getUID());
+                name = true; 
+            }
+            response = din.readUTF();
+
+            if (response.equals("ready, already exists."))
+            {
+                dout.writeUTF("##write");
+            }
+            else if (response.equals("write"))
+            {
+                dout.writeUTF(message);
+            }
+            else if (response.equals("done"))
+            {
+                dout.writeUTF("stop");
+                waiting = false;
+                break;
+            }
+            else
+            {
+                System.out.println("File save issue!");
+            }
+
+            dout.flush();
+
         }
+
+        din.close();
+        dout.close();
+        s.close();
     }
 
     //Read a player from a file
-    public static Player ReadObjectFromFile(String username)
+    public static Player ReadObjectFromFile(String username) throws UnknownHostException, IOException
     {
-        try
+        s = new Socket(IP, PORT);
+        din = new DataInputStream(s.getInputStream());
+        dout = new DataOutputStream(s.getOutputStream());
+        boolean waiting = true;
+        boolean name = false; 
+        String response = "";
+        Player p = null;
+        while (waiting)
         {
-            filepath = "./players/player_" + username;
-            FileInputStream fileIn = new FileInputStream(filepath);
-            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
-            Player inputedPlayer = (Player) objectIn.readObject();
-            objectIn.close();
-            System.out.println("Player " + username  + " Read from File!");
-            return inputedPlayer;
-        }
-        catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+            if (!name)
+            {
+                dout.writeUTF(username);
+                name = true;
+            }
 
-        return null;
+            response = din.readUTF();
+
+            if (response.equals("ready, already exists."))
+            {
+                dout.writeUTF("##read");
+            }
+            else if (response.length() > 10)
+            {
+                p = stringToPlayer(response);
+                dout.writeUTF("stop");
+                waiting = false;
+                break;
+            }
+            else 
+            {
+                System.out.println("response error: " + response);
+            }
+
+            dout.flush();
+        } 
+
+        din.close();
+        dout.close();
+        s.close();
+        return p;
+    }
+
+    public static String playerToString(Player p)
+    {
+        String strPlayer = "";
+        strPlayer += p.getUID() + "," + p.getPassword() + "," + p.getBank() + "," + p.getWins() + "," + p.getLosses();
+        return strPlayer;
+    }
+
+    public static Player stringToPlayer(String str)
+    {
+        String username, password, bank, wins, losses;
+        String[] stats = str.split(",");
+        username = stats[0];
+        password = stats[1];
+        bank = stats[2];
+        wins = stats[3];
+        losses = stats[4];
+        Player p = new Player(username);
+        p.setPassword(password);
+        p.setBank(Double.valueOf(bank));
+        p.setWins(Integer.parseInt(wins));
+        p.setLosses(Integer.parseInt(losses));
+
+        return p;
+    }
+
+
+    public static boolean createNewUser(String username) throws IOException
+    {
+        s = new Socket(IP, PORT);
+        din = new DataInputStream(s.getInputStream());
+        dout = new DataOutputStream(s.getOutputStream());
+        boolean waiting = true;
+        boolean name = false; 
+        String response = "";
+        boolean output = false;
+        while (waiting)
+        {
+            if (!name)
+            {
+                dout.writeUTF(username);
+                name = true;
+            }
+
+            response = din.readUTF();
+            //System.out.println(response);
+
+            if (response.equals("ready, file created."))
+            {
+                dout.writeUTF("stop");
+                output = true;
+                waiting = false;
+
+                
+                break;
+            }
+            else if (response.equals("ready, already exists."))
+            {
+                dout.writeUTF("stop");
+                output = false;
+                waiting = false;
+                break;
+            }
+            else 
+            {
+                output = false;
+                
+            }
+
+            dout.flush();
+
+        }
+        din.close();
+        dout.close();
+        s.close();
+        return output;
     }
 
     //!!!!!ALL BUTTON ACTION LISTENERS!!!!!
@@ -390,7 +530,12 @@ public class GUI implements ActionListener {
             password = String.valueOf(passText.getPassword());
 
             //Find file associated with username
-            player = ReadObjectFromFile(username); //Add fix so usernames who dont exist dont throw errors
+            try {
+                player = ReadObjectFromFile(username);
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } //Add fix so usernames who dont exist dont throw errors
         
             //Check that password matches, then switch to Main Menu
             if (player.getPassword().equals(password))
@@ -428,14 +573,14 @@ public class GUI implements ActionListener {
             password = String.valueOf(createPassText.getPassword());
 
             //Set default filepath and create a file
-            filepath = "./players/player_" + username;
-            newFile = new File(filepath);
+            //filepath = "./players/player_" + username;
+            //newFile = new File(filepath);
             
             try
             {
-                if (newFile.createNewFile()) //Create a file
+                if (createNewUser(username)) //Create a file
                 {
-                    System.out.println("File created: " + newFile.getName());
+                    System.out.println("File created: " + username);
                 }
                 else //User already exists
                 {
@@ -448,13 +593,18 @@ public class GUI implements ActionListener {
                 exep.printStackTrace();
             }
 
-            if (username != null) //If no errors occured createa account
+            if (username != null) //If no errors occured create an account
             {
                 player = new Player(username);
                 player.setPassword(password);
                 System.out.println("Account Created!");
                 player.addBank(100);
-                WriteObjectToFile(player);
+                try {
+                    WriteObjectToFile(player);
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             } 
             else //Error occured: let user know, account already exists
             { 
