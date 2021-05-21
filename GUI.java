@@ -701,6 +701,12 @@ public class GUI implements ActionListener {
                     win.setForeground(Color.RED);
                     backgroundGame.add(win);
 
+                    try {
+                        WriteObjectToFile(player);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+
                     //Reveal dealer's hidden card
                     dealerCardHidden.setIcon(new ImageIcon("./cards/" + handDealer.getHand().get(1).toString().toLowerCase()));
 
@@ -759,6 +765,11 @@ public class GUI implements ActionListener {
                 {
                     player.addBank(2*betAmount);
                 }
+                try {
+                    WriteObjectToFile(player);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
             else if (busted == false && handDealer.calculateTotal() > handPlayer.calculateTotal())
             {
@@ -769,6 +780,11 @@ public class GUI implements ActionListener {
                 win.setForeground(Color.RED);
                 backgroundGame.add(win);
                 player.addLoss();
+                try {
+                    WriteObjectToFile(player);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
             else if (busted == false && handDealer.calculateTotal() == handPlayer.calculateTotal())
             {
@@ -781,6 +797,11 @@ public class GUI implements ActionListener {
                 if (betPlaced)
                 {
                     player.addBank(betAmount);
+                }
+                try {
+                    WriteObjectToFile(player);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
             else if (busted == true)
@@ -796,6 +817,11 @@ public class GUI implements ActionListener {
                 if (betPlaced)
                 {
                     player.addBank(2*betAmount);
+                }
+                try {
+                    WriteObjectToFile(player);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
         }
