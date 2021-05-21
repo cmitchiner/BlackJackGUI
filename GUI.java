@@ -40,11 +40,13 @@ public class GUI implements ActionListener {
     private JLabel backgroundMenu = new JLabel(new ImageIcon("./images/blackjack.png"));
     private JLabel backgroundStats = new JLabel(new ImageIcon("./images/stats_background.jpeg"));
     private JLabel backgroundBets = new JLabel(new ImageIcon("./images/stats_background.jpeg"));
+    private JButton confirmBetsButton = new JButton("Confirm");
     private JLabel backgroundGame;
     private JLabel betsQuestion;
 
     //Text & Password Fields
     private JTextField userText;
+    private JTextField betField;
     private JPasswordField passText;
     private JPasswordField createPassText;
 
@@ -70,10 +72,11 @@ public class GUI implements ActionListener {
     //Integers
     private int widthChange,widthChange2; 
     private int cardsPrinted;
+    private int betAmount;
 
     //Booleans
     private boolean busted = false;
-    private boolean exit;
+    private boolean betPlaced = false;
     
     //Player Objects
     public Player player = null;
@@ -116,6 +119,7 @@ public class GUI implements ActionListener {
         confirmCreateAccountButton.addActionListener(this);
         yesBets.addActionListener(this);
         noBets.addActionListener(this);
+        confirmBetsButton.addActionListener(this);
         frame.setResizable(false);
 
     }
@@ -285,7 +289,6 @@ public class GUI implements ActionListener {
         frame.setTitle("Place Your Bets!");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //Bets
-        exit = false;
         betsQuestion = new JLabel("Would you like to place a bet?");
         betsQuestion.setFont(new Font("Courier", Font.BOLD,15));
         betsQuestion.setForeground(Color.GREEN);
@@ -752,6 +755,10 @@ public class GUI implements ActionListener {
                 win.setBounds(frame.getWidth()/2,frame.getHeight()/2,200,100);
                 backgroundGame.add(win);
                 player.addWin();
+                if (betPlaced)
+                {
+                    player.addBank(2*betAmount);
+                }
             }
             else if (busted == false && handDealer.calculateTotal() > handPlayer.calculateTotal())
             {
@@ -771,6 +778,10 @@ public class GUI implements ActionListener {
                 win.setForeground(Color.GREEN);
                 backgroundGame.add(win);
                 System.out.println("Push");
+                if (betPlaced)
+                {
+                    player.addBank(betAmount);
+                }
             }
             else if (busted == true)
             {
@@ -782,6 +793,10 @@ public class GUI implements ActionListener {
                 win.setBounds(frame.getWidth()/2,frame.getHeight()/2,200,100);
                 backgroundGame.add(win);
                 player.addWin();
+                if (betPlaced)
+                {
+                    player.addBank(2*betAmount);
+                }
             }
         }
         else if (obj == MMButton)
@@ -794,7 +809,7 @@ public class GUI implements ActionListener {
         {
             backgroundGame.removeAll();
             frame.remove(backgroundGame);
-            buildGame();
+            buildBets();
         }
         else if (obj == noBets)
         {
@@ -808,14 +823,33 @@ public class GUI implements ActionListener {
             backgroundBets.remove(yesBets);
             backgroundBets.remove(noBets);
             backgroundBets.repaint();
-            JTextField betField = new JTextField();
+            betField = new JTextField();
             betField.setBounds(65,65,100,25);
-            JButton confirmBetsButton = new JButton("Confirm");
             confirmBetsButton.setBounds(65,100,100,25);
             backgroundBets.add(confirmBetsButton);
             backgroundBets.add(betField);
             //Add a text field
             //and another button
+        }
+        else if (obj == confirmBetsButton)
+        {
+            betAmount = Integer.parseInt(betField.getText());
+            betPlaced = true;
+            if (betAmount >= 0 && player.getBank() >= betAmount)
+            {
+                player.subtractBank(betAmount);
+            }
+            else if (betAmount < 0)
+            {
+                System.out.println("Invalid Input");
+            }
+            else if (player.getBank() < betAmount)
+            {
+                System.out.println("Insufficent Funds!");
+            }
+            backgroundBets.removeAll();
+            frame.remove(backgroundBets);
+            buildGame();
         }
     }
     
