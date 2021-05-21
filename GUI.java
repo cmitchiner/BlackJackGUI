@@ -28,14 +28,16 @@ public class GUI implements ActionListener {
     private JLabel usernameLoginLabel;
     private JLabel passwordLabel;
     private JLabel error;
-    private JLabel totalAmount;
     private JLabel name,balance,wins,losses;
+    private JLabel dealerCardShown;
     private JLabel dealerCardHidden;
     private JLabel backgroundCreateAccount = new JLabel(new ImageIcon("./images/blackjack.png"));
     private JLabel backgroundLogin = new JLabel(new ImageIcon("./images/blackjack.png"));
     private JLabel backgroundMenu = new JLabel(new ImageIcon("./images/blackjack.png"));
     private JLabel backgroundStats = new JLabel(new ImageIcon("./images/stats_background.jpeg"));
+    private JLabel backgroundBets = new JLabel(new ImageIcon("./images/stats_background.jpeg"));
     private JLabel backgroundGame;
+    private JLabel betsQuestion;
 
     //Text & Password Fields
     private JTextField userText;
@@ -53,6 +55,8 @@ public class GUI implements ActionListener {
     private JButton hitButton = new JButton("Hit");
     private JButton playAgainButton = new JButton("Play Again");
     private JButton MMButton = new JButton("Main Menu");
+    private JButton yesBets = new JButton("Yes");
+    private JButton noBets = new JButton("No");
 
     //Strings
     private String username;
@@ -65,6 +69,7 @@ public class GUI implements ActionListener {
 
     //Booleans
     private boolean busted = false;
+    private boolean exit;
     
     //Player Objects
     public Player player = null;
@@ -98,6 +103,8 @@ public class GUI implements ActionListener {
         confirmLoginButton.addActionListener(this);
         createAccountButton.addActionListener(this);
         confirmCreateAccountButton.addActionListener(this);
+        yesBets.addActionListener(this);
+        noBets.addActionListener(this);
         frame.setResizable(false);
 
     }
@@ -125,24 +132,24 @@ public class GUI implements ActionListener {
         
         //Textfield for username
         userText = new JTextField(10);
-        userText.setBackground(Color.GRAY);
-        userText.setBounds(100,20,165, 25);
+        //userText.setBackground(Color.GRAY);
+        userText.setBounds(100,20,150, 25);
         backgroundLogin.add(userText);
 
         //Textfield for password
         passText = new JPasswordField();
-        passText.setBackground(Color.GRAY);
-        passText.setBounds(100,50,165, 25);
+        //passText.setBackground(Color.GRAY);
+        passText.setBounds(100,50,150, 25);
         backgroundLogin.add(passText);
         
         //Sumbit login info button
         confirmLoginButton.setBounds(10,80,80,25);
-        confirmLoginButton.setBackground(Color.gray);
+        //confirmLoginButton.setBackground(Color.gray);
         backgroundLogin.add(confirmLoginButton);
         
         //Button to create a new account
-        createAccountButton.setBounds(100,80,160,25);
-        createAccountButton.setBackground(Color.GRAY);
+        createAccountButton.setBounds(100,80,150,25);
+        //createAccountButton.setBackground(Color.GRAY);
         backgroundLogin.add(createAccountButton);
         
         //Validate and show changes to frame
@@ -210,6 +217,7 @@ public class GUI implements ActionListener {
         //Validate and Show Frame
         frame.setVisible(true);
     }
+    
 
     public void buildStats()
     {
@@ -258,6 +266,28 @@ public class GUI implements ActionListener {
         frame.setVisible(true);
     }
 
+    public void buildBets()
+    {
+        frame.setSize(275,275);
+        backgroundBets.setLayout(null);
+        frame.add(backgroundBets);
+        frame.setTitle("Place Your Bets!");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //Bets
+        exit = false;
+        betsQuestion = new JLabel("Would you like to place a bet?");
+        betsQuestion.setFont(new Font("Courier", Font.BOLD,15));
+        betsQuestion.setForeground(Color.GREEN);
+        betsQuestion.setBounds((frame.getX()/2) + 20,frame.getY()/2,275,50);
+        yesBets.setBounds(65,90,60,25);
+        noBets.setBounds(125,90,50,25);
+        backgroundBets.add(betsQuestion);
+        backgroundBets.add(yesBets);
+        backgroundBets.add(noBets);
+
+        frame.setVisible(true);
+    }
+
 
     public void buildGame()
     {
@@ -274,6 +304,7 @@ public class GUI implements ActionListener {
         frame.setLayout(new GridBagLayout());
         backgroundGame = new JLabel(new ImageIcon("./images/blackjack_background.jpeg"));
         frame.add(backgroundGame);
+
 
         MMButton.setBounds(frame.getWidth()/2 - 150,frame.getHeight()*(1/10),150,25);
         playAgainButton.setBounds(frame.getWidth()/2,frame.getHeight()*(1/10),150,25);
@@ -292,15 +323,9 @@ public class GUI implements ActionListener {
         //Print first two of users playing cards
         printOriginalPlayerCards();
         cardsPrinted = 2;
-
-        //Print total amount of users first two cards
-        totalAmount = new JLabel();
-        totalAmount.setBounds(frame.getWidth()/2 - 500, frame.getHeight() - 150,150,25);
-        totalAmount.setText("Total: " + String.valueOf(handPlayer.calculateTotal()));
-        backgroundGame.add(totalAmount);
         
         //Print dealers cards
-        JLabel dealerCardShown = new JLabel(new ImageIcon("./cards/" + handDealer.getHand().get(0).toString().toLowerCase()));
+        dealerCardShown = new JLabel(new ImageIcon("./cards/" + handDealer.getHand().get(0).toString().toLowerCase()));
         dealerCardHidden = new JLabel(new ImageIcon("./cards/back.jpg"));
         dealerCardShown.setBounds(widthChange2 - 210, frame.getHeight()/9, 209,303);
         dealerCardHidden.setBounds(widthChange2, frame.getHeight()/9,209,303);
@@ -479,7 +504,7 @@ public class GUI implements ActionListener {
         {
             backgroundMenu.removeAll();
             frame.remove(backgroundMenu);
-            buildGame();
+            buildBets();
             frame.repaint();
         }
         // *** View Stats Action ***
@@ -512,16 +537,16 @@ public class GUI implements ActionListener {
                 cardsPrinted++;
                 backgroundGame.repaint();
 
-                if (handPlayer.calculateTotal() <= 21)
+                if (handPlayer.calculateTotal() > 21)
                 {
-                    totalAmount.setText("Total: " + String.valueOf(handPlayer.calculateTotal()));
-                    backgroundGame.repaint();
-                } 
-                else //BUST
-                {
-                    totalAmount.setText("Total: " + String.valueOf(handPlayer.calculateTotal()) + ": BUST");
                     busted = true;
                     player.addLoss();
+
+                    JLabel win = new JLabel("BUST!");
+                    win.setBounds(frame.getWidth()/2,frame.getHeight()/2,200,100);
+                    win.setFont(new Font("Courier", Font.BOLD,25));
+                    win.setForeground(Color.RED);
+                    backgroundGame.add(win);
 
                     //Reveal dealer's hidden card
                     dealerCardHidden.setIcon(new ImageIcon("./cards/" + handDealer.getHand().get(1).toString().toLowerCase()));
@@ -543,21 +568,24 @@ public class GUI implements ActionListener {
         }
         else if (obj == standButton)
         {
+            Font font = new Font("Courier", Font.BOLD,25);
             backgroundGame.remove(hitButton);
             backgroundGame.remove(standButton);
+            backgroundGame.repaint();
             backgroundGame.add(playAgainButton);
             backgroundGame.add(MMButton);
             int cardsPrintedDealer = 2;
-            widthChange2 = widthChange2 - 210;
             //Reveal dealer's hidden card
             dealerCardHidden.setIcon(new ImageIcon("./cards/" + handDealer.getHand().get(1).toString().toLowerCase()));
             while (handDealer.calculateTotal() < 17)
             {
-                widthChange2 -= 210;
+                dealerCardHidden.setBounds(dealerCardHidden.getX()-210,dealerCardHidden.getY(),dealerCardHidden.getWidth(),dealerCardHidden.getHeight());
+                dealerCardShown.setBounds(dealerCardShown.getX()-210,dealerCardShown.getY(),dealerCardShown.getWidth(),dealerCardShown.getHeight());
                 handDealer.addCard(deck.getCardFromDeck());
                 JLabel dealerCard = new JLabel(new ImageIcon("./cards/" + handDealer.getHand().get(cardsPrintedDealer).toString().toLowerCase()));
                 dealerCard.setBounds(widthChange2, frame.getHeight()/9,209,303);
                 cardsPrintedDealer++;
+                widthChange2 -= 210;
                 backgroundGame.add(dealerCard);
                 backgroundGame.repaint();
             }
@@ -568,18 +596,42 @@ public class GUI implements ActionListener {
             if (busted == false && handDealer.calculateTotal() < handPlayer.calculateTotal())
             {
                 System.out.println("Win");
+                JLabel win = new JLabel("YOU WIN!");
+                win.setFont(font);
+                win.setForeground(Color.GREEN);
+                win.setBounds(frame.getWidth()/2,frame.getHeight()/2,200,100);
+                backgroundGame.add(win);
+                player.addWin();
             }
             else if (busted == false && handDealer.calculateTotal() > handPlayer.calculateTotal())
             {
                 System.out.println("Loss");
+                JLabel win = new JLabel("YOU LOOSE!");
+                win.setBounds(frame.getWidth()/2,frame.getHeight()/2,200,100);
+                win.setFont(font);
+                win.setForeground(Color.RED);
+                backgroundGame.add(win);
+                player.addLoss();
             }
             else if (busted == false && handDealer.calculateTotal() == handPlayer.calculateTotal())
             {
+                JLabel win = new JLabel("Push!");
+                win.setBounds(frame.getWidth()/2,frame.getHeight()/2,200,100);
+                win.setFont(font);
+                win.setForeground(Color.GREEN);
+                backgroundGame.add(win);
                 System.out.println("Push");
             }
             else if (busted == true)
             {
                 System.out.println("Dealer Bust! You Win!");
+                System.out.println("Win");
+                JLabel win = new JLabel("YOU WIN!");
+                win.setFont(font);
+                win.setForeground(Color.GREEN);
+                win.setBounds(frame.getWidth()/2,frame.getHeight()/2,200,100);
+                backgroundGame.add(win);
+                player.addWin();
             }
         }
         else if (obj == MMButton)
@@ -593,6 +645,27 @@ public class GUI implements ActionListener {
             backgroundGame.removeAll();
             frame.remove(backgroundGame);
             buildGame();
+        }
+        else if (obj == noBets)
+        {
+            backgroundBets.removeAll();
+            frame.remove(backgroundBets);
+            buildGame();
+        }
+        else if (obj == yesBets)
+        {
+            betsQuestion.setText("How Much?");
+            backgroundBets.remove(yesBets);
+            backgroundBets.remove(noBets);
+            backgroundBets.repaint();
+            JTextField betField = new JTextField();
+            betField.setBounds(65,65,100,25);
+            JButton confirmBetsButton = new JButton("Confirm");
+            confirmBetsButton.setBounds(65,100,100,25);
+            backgroundBets.add(confirmBetsButton);
+            backgroundBets.add(betField);
+            //Add a text field
+            //and another button
         }
     }
     
