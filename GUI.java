@@ -39,7 +39,7 @@ public class GUI implements ActionListener {
     private JLabel backgroundLogin = new JLabel(new ImageIcon("./images/blackjack.png"));
     private JLabel backgroundMenu = new JLabel(new ImageIcon("./images/blackjack.png"));
     private JLabel backgroundStats = new JLabel(new ImageIcon("./images/stats_background.jpeg"));
-    private JLabel backgroundBets = new JLabel(new ImageIcon("./images/stats_background.jpeg"));
+    private JLabel backgroundBets = new JLabel(new ImageIcon("./images/bets.png"));
     private JButton confirmBetsButton = new JButton("Confirm");
     private JLabel backgroundGame;
     private JLabel betsQuestion;
@@ -98,8 +98,8 @@ public class GUI implements ActionListener {
     public static Socket s;
     public static DataInputStream din;
     public static DataOutputStream dout;
-    private static String IP = "217.105.46.146";
-    private static int PORT = 51374;
+    private static String IP = "localhost";
+    private static int PORT = 5050;
     /* **** Variables END **** */
 
 
@@ -291,7 +291,7 @@ public class GUI implements ActionListener {
         //Bets
         betsQuestion = new JLabel("Would you like to place a bet?");
         betsQuestion.setFont(new Font("Courier", Font.BOLD,15));
-        betsQuestion.setForeground(Color.GREEN);
+        betsQuestion.setForeground(Color.WHITE);
         betsQuestion.setBounds((frame.getX()/2) + 20,frame.getY()/2,275,50);
         yesBets.setBounds(65,90,60,25);
         noBets.setBounds(125,90,50,25);
